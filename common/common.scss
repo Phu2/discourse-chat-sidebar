@@ -67,15 +67,19 @@ body.chat-enabled.chat-sidebar-active:not(.has-full-page-chat) {
   }
 
   .chat-drawer {
+    --chat-sidebar-top-offset: max(
+      var(--header-offset, 0px),
+      var(--chat-sidebar-banner-bottom, 0px)
+    );
     width: var(--chat-sidebar-width) !important;
     position: fixed;
-    top: var(--header-offset);
+    top: var(--chat-sidebar-top-offset);
     height: calc(
-      100vh - var(--header-offset, 0px) - var(--composer-height, 0px)
+      100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px)
     ) !important;
 
     &.full-height {
-      height: calc(100vh - var(--header-offset, 0px)) !important;
+      height: calc(100vh - var(--chat-sidebar-top-offset)) !important;
     }
 
     @if (

@@ -20,8 +20,15 @@ export default class ChatSidebar extends Service {
 
   elements = {};
   computedStyles = {};
+  positionOffsetStyles = new WeakMap();
+  bannerOffsetStyles = new WeakMap();
   stateCallback = null;
   resizeTimer = null;
+  bannerUpdateFrame = null;
+  bannerMutationObserver = null;
+  bannerResizeObserver = null;
+  welcomeBannerElement = null;
+  bannerOffsetDrawer = null;
   observing = false;
 
   options(params = {}) {
@@ -31,15 +38,19 @@ export default class ChatSidebar extends Service {
   }
 
   observe() {
-    if (this.observing) {
-      return this;
+    if (!this.observing) {
+      window.addEventListener("resize", this._resize, {
+        passive: true,
+      });
+      window.addEventListener("scroll", this._scheduleBannerOffsetUpdate, {
+        passive: true,
+      });
+
+      this.observing = true;
     }
 
-    window.addEventListener("resize", this._resize, {
-      passive: true,
-    });
-
-    this.observing = true;
+    this.#observeWelcomeBanner();
+    this.#updateBannerOffset();
 
     return this;
   }
@@ -52,12 +63,26 @@ export default class ChatSidebar extends Service {
     window.removeEventListener("resize", this._resize, {
       passive: true,
     });
+    window.removeEventListener("scroll", this._scheduleBannerOffsetUpdate, {
+      passive: true,
+    });
 
     if (this.resizeTimer) {
       cancel(this.resizeTimer);
       this.resizeTimer = null;
     }
 
+    if (this.bannerUpdateFrame !== null) {
+      cancelAnimationFrame(this.bannerUpdateFrame);
+      this.bannerUpdateFrame = null;
+    }
+
+    this.bannerMutationObserver?.disconnect();
+    this.bannerResizeObserver?.disconnect();
+    this.bannerMutationObserver = null;
+    this.bannerResizeObserver = null;
+    this.welcomeBannerElement = null;
+    this.#clearBannerOffset();
     this.#resetStyle();
 
     this.observing = false;
@@ -84,6 +109,18 @@ export default class ChatSidebar extends Service {
   _performResize() {
     requestAnimationFrame(() => {
       this.checkBreakpoint();
+    });
+  }
+
+  @bind
+  _scheduleBannerOffsetUpdate() {
+    if (this.bannerUpdateFrame !== null) {
+      return;
+    }
+
+    this.bannerUpdateFrame = requestAnimationFrame(() => {
+      this.bannerUpdateFrame = null;
+      this.#updateBannerOffset();
     });
   }
 
@@ -286,6 +323,118 @@ export default class ChatSidebar extends Service {
       this.elements[key] = element;
       this.computedStyles[key] = element ? getComputedStyle(element) : null;
     }
+  }
+
+  #observeWelcomeBanner() {
+    const banner = document.querySelector(
+      ".below-site-header-outlet.welcome-link-banner-connector"
+    );
+
+    if (banner === this.welcomeBannerElement) {
+      return;
+    }
+
+    this.bannerMutationObserver?.disconnect();
+    this.bannerResizeObserver?.disconnect();
+    this.welcomeBannerElement = banner;
+
+    if (!banner) {
+      return;
+    }
+
+    this.bannerMutationObserver ??= new MutationObserver(
+      this._scheduleBannerOffsetUpdate
+    );
+    this.bannerResizeObserver ??= new ResizeObserver(
+      this._scheduleBannerOffsetUpdate
+    );
+
+    this.bannerMutationObserver.observe(banner, {
+      childList: true,
+      subtree: true,
+    });
+    this.bannerResizeObserver.observe(banner);
+
+    const bannerWrapper = banner.querySelector(".welcome-link-banner-wrapper");
+    if (bannerWrapper) {
+      this.bannerResizeObserver.observe(bannerWrapper);
+    }
+  }
+
+  #updateBannerOffset() {
+    this.#observeWelcomeBanner();
+
+    const drawer = document.querySelector(ELEMENT_SELECTORS.chatDrawer);
+
+    if (this.bannerOffsetDrawer && this.bannerOffsetDrawer !== drawer) {
+      this.#clearBannerOffset();
+    }
+
+    if (!drawer) {
+      this.#clearBannerOffset();
+      return;
+    }
+
+    this.elements.chatDrawer = drawer;
+
+    const bannerWrapper = this.welcomeBannerElement?.querySelector(
+      ".welcome-link-banner-wrapper"
+    );
+
+    if (!bannerWrapper) {
+      this.#clearBannerOffset();
+      return;
+    }
+
+    const bannerStyle = getComputedStyle(bannerWrapper);
+    const bannerRect = bannerWrapper.getBoundingClientRect();
+
+    if (
+      bannerStyle.display === "none" ||
+      bannerStyle.visibility === "hidden" ||
+      bannerRect.height === 0
+    ) {
+      this.#clearBannerOffset();
+      return;
+    }
+
+    if (!this.bannerOffsetStyles.has(drawer)) {
+      this.bannerOffsetStyles.set(drawer, {
+        value: drawer.style.getPropertyValue("--chat-sidebar-banner-bottom"),
+        priority: drawer.style.getPropertyPriority(
+          "--chat-sidebar-banner-bottom"
+        ),
+      });
+    }
+
+    this.bannerOffsetDrawer = drawer;
+    const marginBottom = parseFloat(bannerStyle.marginBottom) || 0;
+    const bannerBottom = Math.max(0, bannerRect.bottom + marginBottom);
+    drawer.style.setProperty(
+      "--chat-sidebar-banner-bottom",
+      `${bannerBottom}px`
+    );
+  }
+
+  #clearBannerOffset() {
+    const drawer = this.bannerOffsetDrawer;
+    const previousStyle = drawer && this.bannerOffsetStyles.get(drawer);
+
+    if (drawer && previousStyle) {
+      if (previousStyle.value) {
+        drawer.style.setProperty(
+          "--chat-sidebar-banner-bottom",
+          previousStyle.value,
+          previousStyle.priority
+        );
+      } else {
+        drawer.style.removeProperty("--chat-sidebar-banner-bottom");
+      }
+
+      this.bannerOffsetStyles.delete(drawer);
+    }
+
+    this.bannerOffsetDrawer = null;
   }
 
   #applyTransformX(element, value) {

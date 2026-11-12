@@ -11,7 +11,8 @@
     &__air {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 80px
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            80px
         ) !important;
 
         .chat-drawer-container {
@@ -41,7 +42,8 @@
     &__darkpixlzs-modern {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 80px
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            80px
         ) !important;
 
         .chat-drawer-container {
@@ -57,7 +59,8 @@
     &__discourse-classic {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 3em
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            3em
         ) !important;
 
         .chat-drawer-container {
@@ -72,7 +75,8 @@
     &__fkb-pro {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 4em
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            4em
         ) !important;
 
         .chat-drawer-container {
@@ -90,7 +94,8 @@
     &__ghost {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 3em
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            3em
         ) !important;
 
         .chat-drawer-container {
@@ -107,7 +112,8 @@
     &__graceful {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 60px
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            60px
         ) !important;
 
         .chat-drawer-container {
@@ -122,7 +128,8 @@
     &__material-design {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 3em
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            3em
         ) !important;
 
         .chat-drawer-container {
@@ -138,7 +145,8 @@
     &__mint {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 3em
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            3em
         ) !important;
 
         .chat-drawer-container {
@@ -168,7 +176,8 @@
     &__🌸-sublime {
       .chat-drawer {
         height: calc(
-          100vh - var(--header-offset, 0px) - var(--composer-height, 0px) - 60px
+          100vh - var(--chat-sidebar-top-offset) - var(--composer-height, 0px) -
+            60px
         ) !important;
 
         .chat-drawer-container {
